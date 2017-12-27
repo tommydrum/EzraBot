@@ -7,14 +7,22 @@ using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 
-namespace TommydrumBot.Events
+namespace Ezra.Commands
 {
-    class Commands
+    class PingModule
     {
+        int counter = 0;
+
         [Command("ping")]
         public async Task Ping(CommandContext ctx)
         {
-            await ctx.RespondAsync("pong");
+            if (counter++ > 3)
+            {
+                await ctx.RespondAsync("(╯-_-）╯︵ ┻━┻");
+                counter = 0;
+            }
+            else
+                await ctx.RespondAsync("...");
         }
     }
 }

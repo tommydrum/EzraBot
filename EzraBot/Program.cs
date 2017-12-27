@@ -11,20 +11,21 @@ using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using Microsoft.Extensions.DependencyInjection;
-using TommydrumBot.Events;
+using Ezra.Commands;
 
-
-namespace TommydrumBot
+namespace Ezra
 {
     class Program
     {
-        private DiscordClient _discord;
-        private static CommandsNextModule _commands;
+        static DiscordClient discord;
+        static CommandsNextModule commands;
 
         static void Main(string[] args)
-            => new Program().MainAsync().ConfigureAwait(false).GetAwaiter().GetResult();
+        {
+            MainAsync().ConfigureAwait(false).GetAwaiter().GetResult();
+        }
 
-        public async Task MainAsync()
+        static async Task MainAsync()
         {
             // Retrieve token from token.txt
             string token;
@@ -39,7 +40,7 @@ namespace TommydrumBot
             }
 
             // Configure Discord Session
-            _discord = new DiscordClient(new DiscordConfiguration
+            discord = new DiscordClient(new DiscordConfiguration
             {
                 Token = token,
                 TokenType = TokenType.Bot,
@@ -48,14 +49,17 @@ namespace TommydrumBot
             });
 
             // Configure Commands
-            _commands = _discord.UseCommandsNext(new CommandsNextConfiguration
+            commands = CommandBase.SetupCommands(discord);
+
+            // Create non-command responces
+            discord.MessageCreated += async e =>
             {
-                StringPrefix = "::"
-            });
-            _commands.RegisterCommands<Commands>();
+                if (e.Message.Content.Contains("<@395374670599421952>"))
+                    await e.Message.RespondAsync("no.");
+            };
 
             // Connect bot to discord (includes authorization)
-            await _discord.ConnectAsync();
+            await discord.ConnectAsync();
             // Block this task until the program is closed.
             await Task.Delay(-1);
         }

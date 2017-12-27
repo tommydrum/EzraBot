@@ -6,8 +6,8 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{0CE0A2D8-61D8-4DD8-923D-4304715E0191}</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <RootNamespace>TommydrumBot</RootNamespace>
-    <AssemblyName>TommydrumBot</AssemblyName>
+    <RootNamespace>EzraBot</RootNamespace>
+    <AssemblyName>EzraBot</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
@@ -36,7 +36,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
-    <StartupObject>TommydrumBot.Program</StartupObject>
+    <StartupObject>Ezra.Program</StartupObject>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="DSharpPlus, Version=3.2.3.0, Culture=neutral, processorArchitecture=MSIL">
@@ -161,7 +161,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Events\Commands.cs" />
+    <Compile Include="Commands\CommandBase.cs" />
+    <Compile Include="Commands\PingModule.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
