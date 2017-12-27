@@ -8,30 +8,25 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
-using Discord;
-using Discord.Commands;
-using Discord.WebSocket;
+using DSharpPlus;
+using DSharpPlus.CommandsNext;
 using Microsoft.Extensions.DependencyInjection;
+using TommydrumBot.Events;
 
 
 namespace TommydrumBot
 {
     class Program
     {
-        private DiscordSocketClient _client;
-        private CommandService _commands;
-        private IServiceProvider _services;
+        private DiscordClient _discord;
+        private static CommandsNextModule _commands;
 
         static void Main(string[] args)
-            => new Program().MainAsync().GetAwaiter().GetResult();
+            => new Program().MainAsync().ConfigureAwait(false).GetAwaiter().GetResult();
 
         public async Task MainAsync()
         {
-            _client = new DiscordSocketClient();
-            _commands = new CommandService();
-
-            _client.Log += Log;
-
+            // Retrieve token from token.txt
             string token;
             try
             {
@@ -43,62 +38,26 @@ namespace TommydrumBot
                 throw;
             }
 
-            _services = new ServiceCollection()
-                .BuildServiceProvider();
+            // Configure Discord Session
+            _discord = new DiscordClient(new DiscordConfiguration
+            {
+                Token = token,
+                TokenType = TokenType.Bot,
+                UseInternalLogHandler = true,
+                LogLevel = LogLevel.Debug
+            });
 
-            await InstallCommands();
+            // Configure Commands
+            _commands = _discord.UseCommandsNext(new CommandsNextConfiguration
+            {
+                StringPrefix = "::"
+            });
+            _commands.RegisterCommands<Commands>();
 
-            await _client.LoginAsync(TokenType.Bot, token);
-            await _client.StartAsync();
-
+            // Connect bot to discord (includes authorization)
+            await _discord.ConnectAsync();
             // Block this task until the program is closed.
             await Task.Delay(-1);
         }
-        public async Task InstallCommands()
-        {
-            // Hook the MessageReceived Event into our Command Handler
-            _client.MessageReceived += HandleCommand;
-            // Discover all of the commands in this assembly and load them.
-            await _commands.AddModulesAsync(Assembly.GetEntryAssembly());
-        }
-        public async Task HandleCommand(SocketMessage messageParam)
-        {
-            // Don't process the command if it was a System Message
-            var message = messageParam as SocketUserMessage;
-            if (message == null) return;
-            // Create a number to track where the prefix ends and the command begins
-            int argPos = 0;
-            // Determine if the message is a command, based on if it starts with '!' or a mention prefix
-            if (!(message.HasCharPrefix('!', ref argPos) || message.HasMentionPrefix(_client.CurrentUser, ref argPos))) return;
-            // Make sure author of msg is authorized to run commands
-            if (messageParam.Author.Username != "tommydrum")
-            {
-                await messageParam.Channel.SendMessageAsync("Must be bot owner to run a command!");
-                return;
-            }
-            // Create a Command Context
-            var context = new CommandContext(_client, message);
-            // Execute the command. (result does not indicate a return value, 
-            // rather an object stating if the command executed successfully)
-            //var result = await _commands.ExecuteAsync(context, argPos, _services);
-            await _commands.ExecuteAsync(context, argPos, _services);
-            //if (!result.IsSuccess)
-            //{
-            //    await context.Channel.SendMessageAsync(result.ErrorReason);
-            //    await Log(new LogMessage(LogSeverity.Warning, messageParam.Author.Username.ToString(),
-            //        messageParam.Content + ": Error processing this command", null));
-            //}
-            //else
-            //{
-            //    await Log(new LogMessage(LogSeverity.Info, messageParam.Author.Username.ToString(),
-            //        messageParam.Content, null));
-            //}
-        }
-        private Task Log(LogMessage msg)
-        {
-            Console.WriteLine(msg.ToString());
-            return Task.FromResult(false);
-        }
-
     }
 }
